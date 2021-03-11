@@ -2,10 +2,11 @@ import imagehandler as imgh
 import datetime
 import discord
 
-logfile = "log.txt"
+log_path = imgh.log_path
+print(log_path)
 
 def read_log():
-    with open(logfile) as log:
+    with open(log_path) as log:
         data = [x for x in log]
         return data
 
@@ -16,7 +17,7 @@ def add_new_record(new_element):
     else:
         data[0] = f"{str(int(data[0]) + 1)}\n"
     data.append(f"\n{data[0].strip()},{strify(new_element)}")
-    with open(logfile, 'w') as log:
+    with open(log_path, 'w') as log:
         log.writelines(data)
     return generate_give_confirm_embed(new_element, data[0].strip())
 
@@ -35,7 +36,7 @@ def delete_record(id):
             embed = discord.Embed(title="**RENTAL ENDED!**", color=0xFF0000)
             embed.set_thumbnail(url = row[4])
             embed.add_field(name=f"**Log ID: {row[0]}**", value=f"Username: {row[1]}\nGiven by: {row[2]}\nGiven on: {row[3].strftime('%Y-%m-%d %H:%M')}\nItems: {row[4]}", inline=False)
-    with open(logfile, 'w') as log:
+    with open(log_path, 'w') as log:
         log.writelines(strbuilder)
     if not embed:
         embed = discord.Embed(title=f"**Cannot find stash record!**", color=0xFF0000)
