@@ -1,8 +1,6 @@
 import os
-from dotenv import load_dotenv
 from imgurpython import ImgurClient
 
-load_dotenv()
 client_id = os.getenv('IMGUR_CLIENT_ID')
 client_secret = os.getenv('IMGUR_CLIENT_SECRET')
 #auth_pin = os.getenv('IMGUR_AUTH_PIN')
