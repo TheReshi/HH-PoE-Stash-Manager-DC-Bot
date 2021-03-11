@@ -6,6 +6,7 @@ client_secret = os.getenv('IMGUR_CLIENT_SECRET')
 #auth_pin = os.getenv('IMGUR_AUTH_PIN')
 access_token = os.getenv('IMGUR_ACCESS_TOKEN')
 refresh_token = os.getenv('IMGUR_REFRESH_TOKEN')
+print(f"client_id: {client_id}\nclient_secret: {client_secret}\naccess_token: {access_token}\nrefresh_token: {refresh_token}")
 
 client = ImgurClient(client_id, client_secret, access_token, refresh_token)
 
