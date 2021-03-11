@@ -2,8 +2,7 @@ import imagehandler as imgh
 import datetime
 import discord
 
-log_path = imgh.log_path
-print(log_path)
+log_path = "log.db"
 
 def read_log():
     with open(log_path) as log:
