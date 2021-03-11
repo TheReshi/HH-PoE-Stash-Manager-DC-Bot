@@ -52,8 +52,10 @@ async def list(ctx):
 
 @bot.command(name='take')
 async def take(ctx, id):
+    author = ctx.message.author.name
+    date = ctx.message.created_at.replace(second=0, microsecond=0) + datetime.timedelta(hours=1)
     if (id):
-            msg = res.delete_record(id)
+            msg = res.delete_record(id, author, date)
             await ctx.send(embed=msg)
             await ctx.message.delete()
     else:
