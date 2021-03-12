@@ -1,0 +1,9 @@
+bot_prefix = '!'
+accepted_role = 818553620290469888
+yes_emoji = '\u2705'
+no_emoji = '\u274C'
+log_id = 0
+log_receiver = 1
+log_giver = 2
+log_date = 3
+log_url = 4
