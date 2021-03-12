@@ -61,7 +61,6 @@ def generate_give_embed():
     return embed
 
 def generate_give_confirm_embed(id):
-    print(give_data)
     embed = discord.Embed(title="**RENTAL SUCCESS!**", color=0x1EBA02)
     embed.set_thumbnail(url = give_data[cfg.log_url])
     embed.add_field(name=f"**ID: {id}**", value=f"Username: {give_data[cfg.log_receiver]}\nGiven by: {give_data[cfg.log_giver].name}\nGiven on: {give_data[cfg.log_date].strftime('%Y-%m-%d %H:%M')}\nItems: {give_data[cfg.log_url]}", inline=False)

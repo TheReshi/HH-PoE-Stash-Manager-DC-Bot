@@ -20,7 +20,6 @@ async def give(ctx, username = ''):
         items = imgh.upload_to_imgur(ctx.message.attachments[0].url)
         res.give_ongoing = True
         res.give_data = [-1, username, author, date, items]
-        print("Yiss!")
         msg = res.generate_give_embed()
         sent_msg = await ctx.send(embed=msg)
         for emoji in emojis:
