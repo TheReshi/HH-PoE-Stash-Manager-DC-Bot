@@ -16,7 +16,7 @@ async def give(ctx, username = ''):
     emojis = [cfg.yes_emoji, cfg.no_emoji]
     date = ctx.message.created_at.replace(second=0, microsecond=0) + datetime.timedelta(hours=1)
     #try:
-    if (username):
+    if username:
         items = imgh.upload_to_imgur(ctx.message.attachments[0].url)
         res.give_ongoing = True
         res.give_data = [-1, username, author, date, items]
@@ -28,7 +28,6 @@ async def give(ctx, username = ''):
         await ctx.send("__Wrong command format!__\n\n**The correct format is**:\n>>> !give [username]\nDo not forget to also attach the image of the items!")
     #except:
     #    await ctx.send("__Wrong command format!__\n\n**The correct format is**:\n>>> !give [username]\nDo not forget to also attach the image of the items!")
-
     await ctx.message.delete()
 
 @bot.command(name="list", brief=f"{cfg.bot_prefix}list", description="Used for listing all the currently active item rentals and their IDs.")
@@ -64,7 +63,6 @@ async def help(ctx):
             strbuilder += f"\n**{cfg.bot_prefix}{comm.name}**\n```\nSyntax: {comm.brief}\nDescription: {comm.description}\n```"
     await ctx.send(strbuilder)
     
-
 @bot.event
 async def on_reaction_add(reaction, user):
     if user.bot:
