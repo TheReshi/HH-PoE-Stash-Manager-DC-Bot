@@ -1,5 +1,5 @@
 bot_prefix = '!'
-accepted_role = 818553620290469888
+accepted_role = 754386522735902761
 yes_emoji = '\u2705'
 no_emoji = '\u274C'
 log_id = 0
