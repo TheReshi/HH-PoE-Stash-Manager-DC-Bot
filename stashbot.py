@@ -59,7 +59,7 @@ async def test(ctx):
 @bot.command(name="help", brief=f"{cfg.bot_prefix}help", description="Shows this command.")
 async def help(ctx):
     await ctx.message.delete()
-    strbuilder = "**AVAILABLE COMMANDS**\n"
+    strbuilder = "\n**AVAILABLE COMMANDS**\n"
     for comm in bot.commands:
         if comm.name != "test" and comm.name != "help":
             strbuilder += f"\n**{cfg.bot_prefix}{comm.name}**\n```\nSyntax: {comm.brief}\nDescription: {comm.description}\n```"
