@@ -55,11 +55,6 @@ def get_records():
     return embed
 
 def generate_give_embed():
-    print(give_data)
-    print(give_data[cfg.log_receiver])
-    print(give_data[cfg.log_giver].name)
-    print(give_data[cfg.log_date].strftime('%Y-%m-%d %H:%M'))
-    print(give_data[cfg.log_url])
     embed = discord.Embed(color=0x555555)
     embed.set_thumbnail(url = give_data[cfg.log_url])
     embed.add_field(name="**Are the following details correct? Use a reaction!**", value=f"Username: {give_data[cfg.log_receiver]}\nGiven by: {give_data[cfg.log_giver].name}\nGiven on: {give_data[cfg.log_date].strftime('%Y-%m-%d %H:%M')}\nItems: {give_data[cfg.log_url]}", inline=False)
