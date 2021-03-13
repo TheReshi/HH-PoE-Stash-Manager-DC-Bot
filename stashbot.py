@@ -111,7 +111,6 @@ async def test(ctx):
 
 @tasks.loop(hours=24)
 async def warn_expired():
-    print("Ran!")
     msg_channel = bot.get_channel(cfg.bot_channel)
     msg = res.warn_expired()
     mention_msg = ' '.join([f"<@&{role}>" for role in cfg.roles_to_mention])
