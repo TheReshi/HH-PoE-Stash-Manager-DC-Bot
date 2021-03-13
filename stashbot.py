@@ -1,16 +1,17 @@
 # bot.py
-import os, random, discord, math, datetime, imagehandler as imgh, config as cfg, resources as res
+import os, random, discord, math, datetime, time, imagehandler as imgh, config as cfg, resources as res
 from discord.ext import commands
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-bot = commands.Bot(command_prefix=cfg.bot_prefix)
+bot = commands.Bot(command_prefix=cfg.bot_prefix, help_command=None)
 
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
 
 @bot.command(name="give", brief=f"{cfg.bot_prefix}give [account name] (attach image of items)", description="Used for adding items to clan members.")
+@commands.has_role(cfg.accepted_role)
 async def give(ctx, account_name = ''):
     emojis = [cfg.yes_emoji, cfg.no_emoji]
     author = ctx.message.author
@@ -52,8 +53,6 @@ async def on_reaction_add(reaction, user):
             del bot.current_record
     return
 
-bot.run(TOKEN)
-'''
 @bot.command(name="list", brief=f"{cfg.bot_prefix}list", description="Used for listing all the currently active item rentals and their IDs.")
 @commands.has_role(cfg.accepted_role)
 async def list(ctx):
@@ -73,11 +72,6 @@ async def take(ctx, id):
     else:
         await ctx.send("__Wrong command format!__\n\n**The correct format is**:\n>>> !take [id]")
 
-@bot.command(name="test")
-@commands.has_role(cfg.accepted_role)
-async def test(ctx):
-    print([comm.name for comm in bot.commands])
-
 @bot.command(name="help", brief=f"{cfg.bot_prefix}help", description="Shows this command.")
 async def help(ctx):
     await ctx.message.delete()
@@ -92,5 +86,20 @@ async def on_command_error(ctx,error):
     if isinstance(error, commands.MissingRole):
         await ctx.message.delete()
         await ctx.send(f"{ctx.message.author.name}, you don't have permission for this command!")
+
+@bot.command(name="check", brief=f"{cfg.bot_prefix}check", description="Used for checking expired rentals.")
+@commands.has_role(cfg.accepted_role)
+async def check(ctx):
+    msg = res.check_expiry()
+    await ctx.send(embed=msg)
+    await ctx.message.delete()
+
+bot.run(TOKEN)
+
+'''
+@bot.command(name="test")
+@commands.has_role(cfg.accepted_role)
+async def test(ctx):
+    print([comm.name for comm in bot.commands])
 
 '''
