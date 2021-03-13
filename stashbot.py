@@ -4,32 +4,56 @@ from discord.ext import commands
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-bot = commands.Bot(command_prefix=cfg.bot_prefix, help_command=None)
+bot = commands.Bot(command_prefix=cfg.bot_prefix)
 
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
 
-@bot.command(name="give", brief=f"{cfg.bot_prefix}give [Account name] (Attach image of items)", description="Used for adding items to clan members.")
-async def give(ctx, username = ''):
-    author = ctx.message.author
+@bot.command(name="give", brief=f"{cfg.bot_prefix}give [account name] (attach image of items)", description="Used for adding items to clan members.")
+async def give(ctx, account_name = ''):
     emojis = [cfg.yes_emoji, cfg.no_emoji]
+    author = ctx.message.author
     date = ctx.message.created_at.replace(second=0, microsecond=0) + datetime.timedelta(hours=1)
     #try:
-    if username:
-        items = imgh.upload_to_imgur(ctx.message.attachments[0].url)
-        res.give_ongoing = True
-        res.give_data = [-1, username, author, date, items]
-        msg = res.generate_give_embed()
+    if account_name:
+        bot.give_ongoing = True
+        bot.current_record = res.StashRecord(-1, account_name, author, date, ctx.message.attachments[0].url)
+        msg = res.generate_give_embed(bot.current_record)
         sent_msg = await ctx.send(embed=msg)
         for emoji in emojis:
             await sent_msg.add_reaction(emoji)
     else:
-        await ctx.send("__Wrong command format!__\n\n**The correct format is**:\n>>> !give [username]\nDo not forget to also attach the image of the items!")
+        await ctx.send("__Wrong command format!__\n\n**The correct format is**:\n>>> !give [account name]\nDo not forget to also attach the image of the items!")
     #except:
-    #    await ctx.send("__Wrong command format!__\n\n**The correct format is**:\n>>> !give [username]\nDo not forget to also attach the image of the items!")
+    #    await ctx.send("__Wrong command format!__\n\n**The correct format is**:\n>>> !give [account name]\nDo not forget to also attach the image of the items!")
     await ctx.message.delete()
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    if user.bot or not res.check_authority(cfg.accepted_role, user):
+        return
+
+    if bot.give_ongoing:
+        emoji = reaction.emoji
+        if emoji == cfg.yes_emoji:
+            origin_channel = reaction.message.channel
+            await reaction.message.delete()
+            msg = res.add_new_record(bot.current_record)
+            await origin_channel.send(embed=msg)
+            bot.give_ongoing = False
+            del bot.current_record
+        elif emoji == cfg.no_emoji:
+            origin_channel = reaction.message.channel
+            await reaction.message.delete()
+            msg = res.generate_give_abort_embed(bot.current_record)
+            await origin_channel.send(embed=msg)
+            bot.give_ongoing = False
+            del bot.current_record
+    return
+
+bot.run(TOKEN)
+'''
 @bot.command(name="list", brief=f"{cfg.bot_prefix}list", description="Used for listing all the currently active item rentals and their IDs.")
 @commands.has_role(cfg.accepted_role)
 async def list(ctx):
@@ -62,32 +86,6 @@ async def help(ctx):
         if comm.name != "test" and comm.name != "help":
             strbuilder += f"\n**{cfg.bot_prefix}{comm.name}**\n```\nSyntax: {comm.brief}\nDescription: {comm.description}\n```"
     await ctx.send(strbuilder)
-    
-@bot.event
-async def on_reaction_add(reaction, user):
-    if user.bot:
-        return
-
-    if not res.check_authority(cfg.accepted_role, user):
-        return
-
-    if res.give_ongoing:
-        emoji = reaction.emoji
-        if emoji == cfg.yes_emoji:
-            origin_channel = reaction.message.channel
-            await reaction.message.delete()
-            msg = res.add_new_record()
-            await origin_channel.send(embed=msg)
-            res.give_ongoing = False
-            res.give_data = []
-        elif emoji == cfg.no_emoji:
-            origin_channel = reaction.message.channel
-            await reaction.message.delete()
-            msg = res.generate_give_abort_embed()
-            await origin_channel.send(embed=msg)
-            res.give_ongoing = False
-            res.give_data = []
-    return
 
 @bot.event
 async def on_command_error(ctx,error):
@@ -95,4 +93,4 @@ async def on_command_error(ctx,error):
         await ctx.message.delete()
         await ctx.send(f"{ctx.message.author.name}, you don't have permission for this command!")
 
-bot.run(TOKEN)
+'''

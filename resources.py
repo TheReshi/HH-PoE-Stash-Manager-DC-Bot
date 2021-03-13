@@ -1,17 +1,83 @@
+import datetime, discord, json
 import imagehandler as imgh
 import config as cfg
-import datetime
-import discord
 
-give_ongoing = False
-give_data = []
-log_path = "log.db"
+class StashRecord:
+    def __init__(self, id, receiver, giver, given_date, img_url):
+        self.id = id
+        self.receiver = receiver
+        self.giver = giver.name
+        self.given_date = given_date.strftime('%Y-%m-%d-%H-%M')
+        self.deadline = (given_date + datetime.timedelta(days=5)).strftime('%Y-%m-%d-%H-%M')
+        self.img_url = imgh.upload_to_imgur(img_url)
+        self.extended = 0
+        self.warned = 0
+
+    def get_given_date(self):
+        given_date = self.given_date[:]
+        given_date = given_date.split('-')
+        return datetime.datetime(given_date[0], given_date[1], given_date[2], given_date[3], given_date[4])
+
+    def get_deadline(self):
+        deadline = self.deadline[:]
+        deadline = deadline.split('-')
+        return datetime.datetime(deadline[0], deadline[1], deadline[2], deadline[3], deadline[4])
 
 def read_log():
-    with open(log_path) as log:
-        data = [x for x in log]
-        return data
+    with open(cfg.log_path) as json_file:
+        return json.load(json_file)
 
+def write_log(data):
+    with open(cfg.log_path, 'w') as outfile:
+        json.dump(data, outfile)
+
+def generate_give_embed(new_record):
+    embed = discord.Embed(color=0x555555)
+    embed.set_thumbnail(url = new_record.img_url)
+    embed.add_field(name="**Are the following details correct? Use a reaction!**",
+                    value=f"""Account name: {new_record.receiver}
+                              Given by: {new_record.giver}
+                              Given on: {new_record.given_date}
+                              Items: {new_record.img_url}""",
+                    inline=False)
+    return embed
+
+def check_authority(role, author):
+    return role in [role.id for role in author.roles]
+
+def add_new_record(new_record):
+    data = read_log()
+    print(data)
+    data["counter"] = int(data["counter"]) + 1
+    new_record.id = data["counter"]
+    data["rentals"].append(new_record.__dict__)
+    print(data)
+    write_log(data)
+    return generate_give_confirm_embed(new_record)
+
+def generate_give_confirm_embed(new_record):
+    embed = discord.Embed(title="**RENTAL SUCCESS!**", color=0x1EBA02)
+    embed.set_thumbnail(url = new_record.img_url)
+    embed.add_field(name=f"**ID: {new_record.id}**",
+                    value=f"""Account name: {new_record.receiver}
+                              Given by: {new_record.giver}
+                              Given on: {new_record.given_date}
+                              Deadline: {new_record.deadline}
+                              Items: {new_record.img_url}""",
+                    inline=False)
+    return embed
+
+def generate_give_abort_embed(new_record):
+    embed = discord.Embed(title="**RENTAL ABORTED!**", color=0xFF0000)
+    embed.set_thumbnail(url = new_record.img_url)
+    embed.add_field(name=f"**The following process is aborted**",
+                    value=f"""Account name: {new_record.receiver}
+                              Given by: {new_record.giver}
+                              Given on: {new_record.given_date}
+                              Items: {new_record.img_url}""",
+                    inline=False)
+    return embed
+'''
 def add_new_record():
     data = read_log()
     if len(data) == 1:
@@ -87,3 +153,4 @@ def str_to_date(str_dt):
 
 def check_authority(role, author):
     return role in [role.id for role in author.roles]
+'''

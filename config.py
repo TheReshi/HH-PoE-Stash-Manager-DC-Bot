@@ -1,4 +1,5 @@
 bot_prefix = '!'
+log_path = "log.json"
 accepted_role = 754386522735902761
 yes_emoji = '\u2705'
 no_emoji = '\u274C'
