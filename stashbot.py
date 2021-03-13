@@ -109,7 +109,7 @@ async def test(ctx):
     if msg:
         await ctx.send("Asd!", embed=msg)
 
-@tasks.loop(hours=24)
+@tasks.loop(minutes=1)
 async def warn_expired():
     msg_channel = bot.get_channel(cfg.bot_channel)
     msg = res.warn_expired()
