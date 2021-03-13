@@ -1,6 +1,6 @@
 # bot.py
 import os, random, discord, math, datetime, time, imagehandler as imgh, config as cfg, resources as res
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 
@@ -87,19 +87,41 @@ async def on_command_error(ctx,error):
         await ctx.message.delete()
         await ctx.send(f"{ctx.message.author.name}, you don't have permission for this command!")
 
-@bot.command(name="check", brief=f"{cfg.bot_prefix}check", description="Used for checking expired rentals.")
+@bot.command(name="expired", brief=f"{cfg.bot_prefix}expired", description="Used for checking expired rentals.")
 @commands.has_role(cfg.accepted_role)
-async def check(ctx):
-    msg = res.check_expiry()
+async def expired(ctx):
+    msg = res.get_expired_list()
     await ctx.send(embed=msg)
     await ctx.message.delete()
 
-bot.run(TOKEN)
+@bot.command(name="extend", brief=f"{cfg.bot_prefix}extend [id]", description="Used for extending rentals by 5 days.")
+@commands.has_role(cfg.accepted_role)
+async def extend(ctx, id):
+    author = ctx.message.author
+    msg = res.extend_rental(id, author)
+    await ctx.send(embed=msg)
+    await ctx.message.delete()
 
-'''
 @bot.command(name="test")
 @commands.has_role(cfg.accepted_role)
 async def test(ctx):
-    print([comm.name for comm in bot.commands])
+    msg = res.warn_expired()
+    if msg:
+        await ctx.send("Asd!", embed=msg)
 
-'''
+@tasks.loop(hours=24)
+async def warn_expired():
+    print("Ran!")
+    msg_channel = bot.get_channel(cfg.bot_channel)
+    msg = res.warn_expired()
+    mention_msg = ' '.join([f"<@&{role}>" for role in cfg.roles_to_mention])
+    if msg:
+        await msg_channel.send(mention_msg, embed=msg)
+
+@warn_expired.before_loop
+async def before():
+    await bot.wait_until_ready()
+
+warn_expired.start()
+
+bot.run(TOKEN)

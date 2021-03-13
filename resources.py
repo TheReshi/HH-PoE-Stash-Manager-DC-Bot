@@ -44,7 +44,7 @@ def add_new_record(new_record):
     return generate_give_confirm_embed(new_record)
 
 def generate_give_confirm_embed(new_record):
-    embed = discord.Embed(title="**RENTAL SUCCESS!**", color=0x1EBA02)
+    embed = discord.Embed(title="**RENTAL SUCCESSFUL**", color=0x1EBA02)
     embed.set_thumbnail(url = new_record.img_url)
     embed.add_field(name=f"**ID: {new_record.id}**",
                     value=f"""Account name: {new_record.receiver}
@@ -56,7 +56,7 @@ def generate_give_confirm_embed(new_record):
     return embed
 
 def generate_give_abort_embed(new_record):
-    embed = discord.Embed(title="**RENTAL ABORTED!**", color=0xFF0000)
+    embed = discord.Embed(title="**RENTAL ABORTED**", color=0xFF0000)
     embed.set_thumbnail(url = new_record.img_url)
     embed.add_field(name=f"**The following process is aborted**",
                     value=f"""Account name: {new_record.receiver}
@@ -73,11 +73,12 @@ def get_records():
     else:
         embed = discord.Embed(title="**CURRENTLY ACTIVE RENTALS**", color=0x555555)
     for record in data["rentals"]:
+        deadline_str = get_deadline_str(record)
         embed.add_field(name=f"**ID: {record['id']}**",
                         value=f"""> Account name: {record['receiver']}
                                   > Given by: {record['giver']}
                                   > Given on: {record['given_date']}
-                                  > Deadline: {record['deadline']}
+                                  > {deadline_str}{record['deadline']}
                                   > Items: <{record['img_url']}>""",
                         inline=False)
     return embed
@@ -87,13 +88,14 @@ def delete_record(id, author, date):
     embed = False
     for i, record in enumerate(data["rentals"]):
         if int(id) == int(record["id"]):
-            embed = discord.Embed(title="**RENTAL ENDED!**", color=0xFF0000)
+            deadline_str = get_deadline_str(record)
+            embed = discord.Embed(title="**RENTAL ENDED**", color=0xFF0000)
             embed.set_thumbnail(url = record['img_url'])
             embed.add_field(name=f"**ID: {record['id']}**",
                             value=f"""Account name: {record['receiver']}
                                       Given by: {record['giver']}
                                       Given on: {record['given_date']}
-                                      Deadline: {record['deadline']}
+                                      {deadline_str}{record['deadline']}
                                       Taken by: {author.name}
                                       Taken on: {date.strftime('%Y-%m-%d %H:%M')}
                                       Items: {record['img_url']}""",
@@ -106,23 +108,19 @@ def delete_record(id, author, date):
         embed.add_field(name=f"ID: {id}", value=f"For available stash log record, see !get_list", inline=False)
     return embed
 
-def check_expiry():
+def get_expired_list():
     data = read_log()
-    expired_rentals = []
-    for record in data["rentals"]:
-        current_time = datetime.datetime.now()
-        expiry_time = into_datetime(record["deadline"])
-        if current_time > expiry_time:
-            expired_rentals.append(record)
+    expired_rentals = get_expired(data)
     if len(expired_rentals) > 0:
         embed = discord.Embed(title=f"**EXPIRED RENTALS: {len(expired_rentals)}**", color=0xFF0000)
         for expired_rental in expired_rentals:
+            deadline_str = get_deadline_str(expired_rental)
             if int(expired_rental["extended"]) == 0:
                 embed.add_field(name=f"**ID: {expired_rental['id']}**",
                                 value=f"""Account name: {expired_rental['receiver']}
                                         Given by: {expired_rental['giver']}
                                         Given on: {expired_rental['given_date']}
-                                        Deadline: {expired_rental['deadline']}
+                                        {deadline_str}{expired_rental['deadline']}
                                         Items: {expired_rental['img_url']}
                                         
                                         **CAN BE EXTENDED 1 MORE TIME!**""",
@@ -132,13 +130,50 @@ def check_expiry():
                                 value=f"""Account name: {expired_rental['receiver']}
                                         Given by: {expired_rental['giver']}
                                         Given on: {expired_rental['given_date']}
-                                        Deadline: {expired_rental['deadline']}
+                                        {deadline_str}{expired_rental['deadline']}
                                         Items: {expired_rental['img_url']}
                                         
                                         **CANNOT BE EXTENDED ANYMORE!**""",
                                 inline=False)
     else:
-        embed = discord.Embed(title=f"**NO EXPIRED RENTALS**", color=0xFF0000)
+        embed = discord.Embed(title=f"**NO EXPIRED RENTALS**", color=0x1EBA02)
+    return embed
+
+def extend_rental(id, author):
+    data = read_log()
+    embed = ""
+    for i, record in enumerate(data["rentals"]):
+        if int(id) == int(record["id"]):
+            deadline_str = get_deadline_str(record)
+            if int(record["extended"]) == 1:
+                embed = discord.Embed(title="**RENTAL ALREADY EXTENDED**", color=0xFF0000)
+                embed.set_thumbnail(url = record['img_url'])
+                embed.add_field(name=f"**ID: {record['id']}**",
+                                value=f"""Account name: {record['receiver']}
+                                        Given by: {record['giver']}
+                                        Given on: {record['given_date']}
+                                        {deadline_str}{record['deadline']}
+                                        Items: {record['img_url']}""",
+                                inline=False)
+            else:
+                record["deadline"] = (into_datetime(record["deadline"]) + datetime.timedelta(days=5)).strftime('%Y-%m-%d %H:%M')
+                record["extended"] = 1
+                record["warned"] = 0
+                data["rentals"][i] = record
+                embed = discord.Embed(title="**RENTAL SUCCESSFULLY EXTENDED**", color=0x1EBA02)
+                embed.set_thumbnail(url = record['img_url'])
+                embed.add_field(name=f"**ID: {record['id']}**",
+                                value=f"""Account name: {record['receiver']}
+                                        Given by: {record['giver']}
+                                        Given on: {record['given_date']}
+                                        {deadline_str}{record['deadline']}
+                                        Extended by: {author.name}
+                                        Items: {record['img_url']}""",
+                                inline=False)
+            break
+    if not embed:
+        embed = discord.Embed(title="**Couldn't find the specified rental ID**", color=0xFF0000)
+    write_log(data)
     return embed
 
 
@@ -146,3 +181,43 @@ def into_datetime(strtime):
     times = re.split(r"-|:|\s", strtime)
     times = [int(time) for time in times]
     return datetime.datetime(times[0], times[1], times[2], times[3], times[4])
+
+def get_deadline_str(record):
+    if int(record["extended"]) > 0:
+        return "Extended Deadline: "
+    else:
+        return "Deadline: "
+
+def get_expired(data):
+    expired_rentals = []
+    for record in data["rentals"]:
+        current_time = datetime.datetime.now()
+        expiry_time = into_datetime(record["deadline"])
+        if current_time > expiry_time:
+            expired_rentals.append(record)
+    return expired_rentals
+
+def warn_expired():
+    data = read_log()
+    counter = 0
+    for i, record in enumerate(data["rentals"]):
+        current_time = datetime.datetime.now()
+        expiry_time = into_datetime(record["deadline"])
+        if current_time > expiry_time:
+            embed = discord.Embed(title=f"**RENTALS EXPIRED TODAY**", color=0xFF0000)
+            if int(record["warned"]) == 0:
+                counter = counter + 1
+                record["warned"] = 1
+                data["rentals"][i] = record
+                write_log(data)
+                deadline_str = get_deadline_str(record)
+                embed.add_field(name=f"**ID: {record['id']}**",
+                                    value=f"""Account name: {record['receiver']}
+                                            Given by: {record['giver']}
+                                            Given on: {record['given_date']}
+                                            {deadline_str}{record['deadline']}
+                                            Items: {record['img_url']}""",
+                                    inline=False)
+    if counter > 0:
+        return embed
+    return False
