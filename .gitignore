@@ -3,3 +3,4 @@ __pycache__
 test.py
 log.db
 log.json
+nohup.out

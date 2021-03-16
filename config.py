@@ -1,12 +1,7 @@
 bot_prefix = '!'
 log_path = "log.json"
-accepted_role = 818553620290469888
-bot_channel = 819183642743799848
-roles_to_mention = [818553620290469888]
+accepted_role = 754386522735902761
+bot_channel = 819664589423509566
+roles_to_mention = [754386522735902761]
 yes_emoji = '\u2705'
 no_emoji = '\u274C'
-log_id = 0
-log_receiver = 1
-log_giver = 2
-log_date = 3
-log_url = 4
